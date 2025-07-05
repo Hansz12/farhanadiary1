@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import 'login_screen.dart';
-import 'theme_provider.dart';
 import 'add_entry_screen.dart';
+import 'calendar_screen.dart';
 import 'diary_entry.dart';
 import 'shared_pref_service.dart';
-import 'entry_card.dart';
+import 'theme_provider.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,136 +17,155 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String username = '';
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-  List<DiaryEntry> allEntries = [];
-  List<DiaryEntry> filteredEntries = [];
+  List<DiaryEntry> entries = [];
 
   @override
   void initState() {
     super.initState();
-    loadUsername();
     loadEntries();
   }
 
-  Future<void> loadUsername() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      username = prefs.getString('username') ?? 'User';
-    });
-  }
-
   Future<void> loadEntries() async {
-    allEntries = await SharedPrefService.getEntries();
-    filterEntries();
-  }
-
-  void filterEntries() {
-    final selected = _selectedDay ?? DateTime.now();
-    final filtered = allEntries.where((entry) =>
-        entry.date.year == selected.year &&
-        entry.date.month == selected.month &&
-        entry.date.day == selected.day).toList();
-
+    final loadedEntries = await SharedPrefService.getEntries();
     setState(() {
-      filteredEntries = filtered;
+      entries = loadedEntries.reversed.toList(); // terbaru di atas
     });
   }
 
-  Future<void> logout() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', false);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+  void deleteEntry(int index) async {
+    await SharedPrefService.deleteEntry(entries.length - 1 - index);
+    loadEntries();
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Hi, $username 💜'),
+        title: Text(
+          "My Diary 💜",
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(
-              themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-            ),
-            onPressed: () => themeProvider.toggleTheme(),
+            icon: const Icon(Icons.calendar_today, color: Colors.purple),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CalendarScreen()),
+              );
+            },
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: logout,
+            icon: const Icon(Icons.settings, color: Colors.purple),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              return Switch(
+                value: themeProvider.isDarkMode,
+                activeColor: Colors.white,
+                inactiveThumbColor: Colors.purple,
+                inactiveTrackColor: Colors.purple.shade100,
+                onChanged: (val) {
+                  themeProvider.toggleTheme(val);
+                },
+              );
+            },
           ),
         ],
       ),
-      body: Column(
-        children: [
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TableCalendar(
-              firstDay: DateTime.utc(2020, 1, 1),
-              lastDay: DateTime.utc(2030, 12, 31),
-              focusedDay: _focusedDay,
-              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-              onDaySelected: (selectedDay, focusedDay) {
-                setState(() {
-                  _selectedDay = selectedDay;
-                  _focusedDay = focusedDay;
-                });
-                filterEntries();
-              },
-              calendarStyle: const CalendarStyle(
-                todayDecoration: BoxDecoration(
-                  color: Colors.purple,
-                  shape: BoxShape.circle,
-                ),
-                selectedDecoration: BoxDecoration(
-                  color: Colors.deepPurple,
-                  shape: BoxShape.circle,
-                ),
+      body: entries.isEmpty
+          ? Center(
+              child: Text(
+                'Tiada nota lagi 😴',
+                style: GoogleFonts.poppins(fontSize: 16),
               ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: filteredEntries.isEmpty
-                ? const Center(child: Text("No notes for this day 🥲"))
-                : ListView.builder(
-                    itemCount: filteredEntries.length,
-                    itemBuilder: (context, index) {
-                      final entry = filteredEntries[index];
-                      final actualIndex = allEntries.indexOf(entry);
-
-                      return EntryCard(
-                        entry: entry,
-                        index: actualIndex,
-                        onDelete: () {
-                          setState(() {
-                            allEntries.removeAt(actualIndex);
-                            filterEntries();
-                          });
-                        },
-                      );
-                    },
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: entries.length,
+              itemBuilder: (context, index) {
+                final entry = entries[index];
+                return Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  color: Theme.of(context).cardColor,
+                  elevation: 4,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: Text(
+                      entry.emoji,
+                      style: const TextStyle(
+                        fontSize: 30,
+                        fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Segoe UI Emoji',
+                          'Apple Color Emoji'
+                        ],
+                      ),
+                    ),
+                    title: Text(
+                      entry.title,
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600, fontSize: 18),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 6),
+                        Text(
+                          entry.content,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          formatDate(entry.date),
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => deleteEntry(index),
+                    ),
+                  ),
+                );
+              },
+            ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Colors.purple,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add),
+        label: const Text('Add Entry'),
         onPressed: () async {
           await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const AddEntryScreen()),
+            MaterialPageRoute(builder: (context) => const AddEntryScreen()),
           );
-          await loadEntries(); // refresh after return
+          loadEntries();
         },
-        child: const Icon(Icons.add),
       ),
     );
+  }
+
+  String formatDate(DateTime date) {
+    return "${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}";
   }
 }

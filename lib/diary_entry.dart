@@ -1,33 +1,31 @@
 class DiaryEntry {
   final String title;
   final String content;
-  final DateTime date;
   final String emoji;
+  final DateTime date;
 
   DiaryEntry({
     required this.title,
     required this.content,
-    required this.date,
     required this.emoji,
+    required this.date,
   });
 
-  // Convert object to JSON (untuk simpan dalam SharedPreferences)
-  Map<String, dynamic> toJson() {
-    return {
-      'title': title,
-      'content': content,
-      'date': date.toIso8601String(),
-      'emoji': emoji,
-    };
-  }
+  // Convert object to JSON map
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'content': content,
+        'emoji': emoji,
+        'date': date.toIso8601String(),
+      };
 
-  // Convert JSON to object (bila baca balik dari SharedPreferences)
+  // Convert JSON map back to object
   factory DiaryEntry.fromJson(Map<String, dynamic> json) {
     return DiaryEntry(
       title: json['title'],
       content: json['content'],
-      date: DateTime.parse(json['date']),
       emoji: json['emoji'],
+      date: DateTime.parse(json['date']),
     );
   }
 }

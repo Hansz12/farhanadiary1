@@ -36,24 +36,37 @@ class _LoginScreenState extends State<LoginScreen> {
     String username = _usernameController.text.trim();
 
     if (pin.length != 4 || username.isEmpty) {
+      if (!mounted) return;
       showError("Please enter username and 4-digit PIN");
       return;
     }
 
     if (isFirstTime) {
-      // Simpan username & PIN
+      // Register
       await prefs.setString('username', username);
       await prefs.setString('user_pin', pin);
       await prefs.setBool('isLoggedIn', true);
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     } else {
-      // Semak dengan nilai tersimpan
+      // Login
       String savedUsername = prefs.getString('username') ?? '';
       String savedPin = prefs.getString('user_pin') ?? '';
+
       if (username == savedUsername && pin == savedPin) {
         await prefs.setBool('isLoggedIn', true);
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
       } else {
+        if (!mounted) return;
         showError("Username or PIN is incorrect");
       }
     }
@@ -78,7 +91,9 @@ class _LoginScreenState extends State<LoginScreen> {
               const Icon(Icons.lock_person, size: 100, color: Colors.purple),
               const SizedBox(height: 20),
               Text(
-                isFirstTime ? "Register Username & PIN 🔐" : "Login with Username & PIN",
+                isFirstTime
+                    ? "Register Username & PIN 🔐"
+                    : "Login with Username & PIN",
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -95,9 +110,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   filled: true,
                   fillColor: Colors.white,
                   prefixIcon: const Icon(Icons.person, color: Colors.purple),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
+                    borderSide: const BorderSide(
+                        color: Colors.deepPurple, width: 2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
@@ -116,9 +134,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   prefixIcon: const Icon(Icons.pin, color: Colors.purple),
                   filled: true,
                   fillColor: Colors.white,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
+                    borderSide: const BorderSide(
+                        color: Colors.deepPurple, width: 2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
@@ -129,8 +150,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: handleLogin,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.purple,
-                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 50, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
                 ),
                 child: Text(
                   isFirstTime ? "Register" : "Login",

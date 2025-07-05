@@ -1,48 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'login_pin_screen.dart';
 import 'theme_provider.dart';
-import 'login_screen.dart';
-import 'home_screen.dart';
 
 void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  Future<bool> checkLogin() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('isLoggedIn') ?? false;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return MaterialApp(
-      title: 'Farhana Diary 💜',
-      debugShowCheckedModeBanner: false,
-      theme: themeProvider.currentTheme,
-      home: FutureBuilder<bool>(
-        future: checkLogin(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          } else {
-            return snapshot.data == true
-                ? const HomeScreen()
-                : const LoginScreen();
-          }
+    return ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'FarhanaDiary 💜',
+            themeMode: themeProvider.themeMode,
+            theme: ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
+              scaffoldBackgroundColor: Colors.purple[50],
+              textTheme: GoogleFonts.poppinsTextTheme(),
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                iconTheme: IconThemeData(color: Colors.purple),
+              ),
+              floatingActionButtonTheme: const FloatingActionButtonThemeData(
+                backgroundColor: Colors.purple,
+              ),
+            ),
+            darkTheme: ThemeData.dark().copyWith(
+              textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
+              colorScheme: const ColorScheme.dark(
+                primary: Colors.purple,
+              ),
+            ),
+            home: const LoginPinScreen(), // start here
+          );
         },
       ),
     );

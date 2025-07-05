@@ -1,42 +1,55 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart'; // <-- untuk debugPrint
 import 'package:shared_preferences/shared_preferences.dart';
 import 'diary_entry.dart';
 
 class SharedPrefService {
-  static const String _key = 'diary_entries';
+  static const String _entryKey = 'diary_entries';
 
-  // Simpan semua nota
-  static Future<void> saveEntries(List<DiaryEntry> entries) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> encodedEntries = entries.map((e) => jsonEncode(e.toJson())).toList();
-    await prefs.setStringList(_key, encodedEntries);
+  // Simpan entry baru
+  static Future<void> saveEntry(DiaryEntry entry) async {
+    final prefs = await SharedPreferences.getInstance();
+    final entries = await getEntries();
+
+    entries.add(entry);
+
+    final encoded = jsonEncode(entries.map((e) => e.toJson()).toList());
+    await prefs.setString(_entryKey, encoded);
   }
 
-  // Ambil semua nota
+  // Ambil semua entry
   static Future<List<DiaryEntry>> getEntries() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? encodedEntries = prefs.getStringList(_key);
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = prefs.getString(_entryKey);
 
-    if (encodedEntries == null) return [];
+    if (encoded == null || encoded.isEmpty) return [];
 
-    return encodedEntries
-        .map((entry) => DiaryEntry.fromJson(jsonDecode(entry)))
-        .toList();
-  }
-
-  // Padam nota ikut index
-  static Future<void> deleteEntry(int index) async {
-    List<DiaryEntry> entries = await getEntries();
-    if (index >= 0 && index < entries.length) {
-      entries.removeAt(index);
-      await saveEntries(entries);
+    try {
+      final decoded = jsonDecode(encoded) as List<dynamic>;
+      return decoded
+          .map((e) => DiaryEntry.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint("❌ Error decode entry: $e");
+      return [];
     }
   }
 
-  // Tambah nota baru
-  static Future<void> addEntry(DiaryEntry entry) async {
-    List<DiaryEntry> entries = await getEntries();
-    entries.add(entry);
-    await saveEntries(entries);
+  // Padam entry ikut index
+  static Future<void> deleteEntry(int index) async {
+    final prefs = await SharedPreferences.getInstance();
+    final entries = await getEntries();
+
+    if (index >= 0 && index < entries.length) {
+      entries.removeAt(index);
+      final encoded = jsonEncode(entries.map((e) => e.toJson()).toList());
+      await prefs.setString(_entryKey, encoded);
+    }
+  }
+
+  // Padam semua
+  static Future<void> clearAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_entryKey);
   }
 }
