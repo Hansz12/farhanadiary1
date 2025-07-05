@@ -28,7 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> loadEntries() async {
     final loadedEntries = await SharedPrefService.getEntries();
     setState(() {
-      entries = loadedEntries.reversed.toList(); // terbaru di atas
+      // Reverse so latest entries appear first
+      entries = loadedEntries.reversed.toList();
     });
   }
 
@@ -87,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: entries.isEmpty
           ? Center(
               child: Text(
-                'Tiada nota lagi 😴',
+                'No notes yet 😴',
                 style: GoogleFonts.poppins(fontSize: 16),
               ),
             )
@@ -159,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
             context,
             MaterialPageRoute(builder: (context) => const AddEntryScreen()),
           );
-          loadEntries();
+          loadEntries(); // Reload entries when coming back
         },
       ),
     );

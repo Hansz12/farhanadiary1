@@ -6,17 +6,18 @@ import 'diary_entry.dart';
 import 'shared_pref_service.dart';
 
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({super.key});
+  const CalendarScreen({Key? key}) : super(key: key);
 
   @override
   State<CalendarScreen> createState() => _CalendarScreenState();
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  late Map<DateTime, List<DiaryEntry>> groupedEntries;
+  late Map<DateTime, List<DiaryEntry>> dailyEntries;
   DateTime selectedDate = _normalizeDate(DateTime.now());
-  List<DiaryEntry> filteredEntries = [];
+  List<DiaryEntry> entriesForDay = [];
 
+  // Normalize DateTime to remove time component
   static DateTime _normalizeDate(DateTime date) {
     return DateTime(date.year, date.month, date.day);
   }
@@ -24,30 +25,30 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   void initState() {
     super.initState();
-    groupedEntries = {};
-    loadEntries();
+    dailyEntries = {};
+    _loadEntries();
   }
 
-  Future<void> loadEntries() async {
+  Future<void> _loadEntries() async {
     final entries = await SharedPrefService.getEntries();
-    final Map<DateTime, List<DiaryEntry>> tempGrouped = {};
+    Map<DateTime, List<DiaryEntry>> map = {};
 
     for (var entry in entries) {
       final dateKey = _normalizeDate(entry.date);
-      tempGrouped.putIfAbsent(dateKey, () => []).add(entry);
+      map.putIfAbsent(dateKey, () => []).add(entry);
     }
 
     setState(() {
-      groupedEntries = tempGrouped;
-      filteredEntries = groupedEntries[selectedDate] ?? [];
+      dailyEntries = map;
+      entriesForDay = dailyEntries[selectedDate] ?? [];
     });
   }
 
-  void onDaySelected(DateTime day, DateTime focusedDay) {
-    final normalizedDay = _normalizeDate(day);
+  void _onDaySelected(DateTime day, DateTime focusedDay) {
+    final normalized = _normalizeDate(day);
     setState(() {
-      selectedDate = normalizedDay;
-      filteredEntries = groupedEntries[normalizedDay] ?? [];
+      selectedDate = normalized;
+      entriesForDay = dailyEntries[normalized] ?? [];
     });
   }
 
@@ -56,7 +57,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Kalender 🗓️',
+          'Calendar 🗓️',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.primary,
@@ -81,32 +82,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
             ),
             selectedDayPredicate: (day) => isSameDay(day, selectedDate),
-            onDaySelected: onDaySelected,
+            onDaySelected: _onDaySelected,
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: filteredEntries.isEmpty
+            child: entriesForDay.isEmpty
                 ? Center(
                     child: Text(
-                      "Tiada entri pada tarikh ini 😅",
+                      "No entries for this day 😊",
                       style: GoogleFonts.poppins(),
                     ),
                   )
                 : ListView.builder(
-                    itemCount: filteredEntries.length,
+                    itemCount: entriesForDay.length,
                     itemBuilder: (context, index) {
-                      final entry = filteredEntries[index];
+                      final entry = entriesForDay[index];
                       return ListTile(
                         leading: Text(
                           entry.emoji,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontFamilyFallback: [
-                              'NotoColorEmoji',
-                              'Segoe UI Emoji',
-                              'Apple Color Emoji',
-                            ],
-                          ),
+                          style: const TextStyle(fontSize: 28),
                         ),
                         title: Text(
                           entry.title,

@@ -10,7 +10,7 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Tetapan ⚙️",
+          "Settings ⚙️",
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.primary,
@@ -23,7 +23,7 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.lock, color: Colors.purple),
             title: Text(
-              'Tukar PIN',
+              'Change PIN',
               style: GoogleFonts.poppins(),
             ),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -35,7 +35,7 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           const Divider(),
-          // Tambahan lain (logout, ganti tema dsb)
+          // Additional settings can be added here (e.g. logout, theme settings, etc.)
         ],
       ),
     );

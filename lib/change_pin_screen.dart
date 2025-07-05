@@ -30,21 +30,21 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
 
     if (oldPin.isEmpty || newPin.isEmpty) {
       setState(() {
-        errorMessage = "PIN tak boleh kosong.";
+        errorMessage = "PIN cannot be empty.";
       });
       return;
     }
 
     if (oldPin != storedPin) {
       setState(() {
-        errorMessage = "PIN lama salah.";
+        errorMessage = "Old PIN is incorrect.";
       });
       return;
     }
 
     await prefs.setString('userPin', newPin);
     setState(() {
-      successMessage = "PIN berjaya ditukar! 🎉";
+      successMessage = "PIN changed successfully! 🎉";
       oldPinController.clear();
       newPinController.clear();
     });
@@ -55,7 +55,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Tukar PIN 🔐",
+          "Change PIN 🔐",
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.primary,
@@ -70,7 +70,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
             TextField(
               controller: oldPinController,
               decoration: const InputDecoration(
-                labelText: 'PIN lama',
+                labelText: 'Old PIN',
                 border: OutlineInputBorder(),
               ),
               obscureText: true,
@@ -80,7 +80,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
             TextField(
               controller: newPinController,
               decoration: const InputDecoration(
-                labelText: 'PIN baru',
+                labelText: 'New PIN',
                 border: OutlineInputBorder(),
               ),
               obscureText: true,
@@ -93,7 +93,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                 backgroundColor: Colors.purple,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Tukar PIN'),
+              child: const Text('Change PIN'),
             ),
             const SizedBox(height: 12),
             if (errorMessage != null)

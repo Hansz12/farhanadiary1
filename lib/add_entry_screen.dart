@@ -28,7 +28,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Tajuk & kandungan tidak boleh kosong'),
+          content: Text('Title & content cannot be empty'),
           backgroundColor: Colors.red,
         ),
       );
@@ -89,7 +89,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Tambah Nota 📝",
+          "Add Note 📝",
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.primary,
@@ -104,7 +104,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
             TextField(
               controller: titleController,
               decoration: const InputDecoration(
-                labelText: 'Tajuk',
+                labelText: 'Title',
                 border: OutlineInputBorder(),
               ),
               style: GoogleFonts.poppins(),
@@ -114,14 +114,14 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
               controller: contentController,
               maxLines: 5,
               decoration: const InputDecoration(
-                labelText: 'Kandungan',
+                labelText: 'Content',
                 border: OutlineInputBorder(),
               ),
               style: GoogleFonts.poppins(),
             ),
             const SizedBox(height: 20),
             Text(
-              "Pilih Emoji:",
+              "Choose an Emoji:",
               style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 10),
@@ -130,7 +130,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
             ElevatedButton.icon(
               onPressed: saveEntry,
               icon: const Icon(Icons.save),
-              label: const Text('Simpan'),
+              label: const Text('Save'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.purple,
                 foregroundColor: Colors.white,
