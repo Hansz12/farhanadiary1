@@ -6,61 +6,59 @@ import 'diary_entry.dart';
 import 'shared_pref_service.dart';
 
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({Key? key}) : super(key: key);
+  const CalendarScreen({super.key});
 
   @override
   State<CalendarScreen> createState() => _CalendarScreenState();
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  late Map<DateTime, List<DiaryEntry>> dailyEntries;
-  DateTime selectedDate = _normalizeDate(DateTime.now());
-  List<DiaryEntry> entriesForDay = [];
-
-  // Normalize DateTime to remove time component
-  static DateTime _normalizeDate(DateTime date) {
-    return DateTime(date.year, date.month, date.day);
-  }
+  late Map<DateTime, List<DiaryEntry>> groupedEntries;
+  DateTime selectedDate = DateTime.now();
+  List<DiaryEntry> filteredEntries = [];
 
   @override
   void initState() {
     super.initState();
-    dailyEntries = {};
-    _loadEntries();
+    groupedEntries = {};
+    loadEntries();
   }
 
-  Future<void> _loadEntries() async {
+  DateTime normalizeDate(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
+
+  Future<void> loadEntries() async {
     final entries = await SharedPrefService.getEntries();
-    Map<DateTime, List<DiaryEntry>> map = {};
-
-    for (var entry in entries) {
-      final dateKey = _normalizeDate(entry.date);
-      map.putIfAbsent(dateKey, () => []).add(entry);
-    }
-
     setState(() {
-      dailyEntries = map;
-      entriesForDay = dailyEntries[selectedDate] ?? [];
+      groupedEntries = {};
+      for (var entry in entries) {
+        final dateKey = normalizeDate(entry.date);
+        groupedEntries.putIfAbsent(dateKey, () => []).add(entry);
+      }
+      filteredEntries = groupedEntries[normalizeDate(selectedDate)] ?? [];
     });
   }
 
-  void _onDaySelected(DateTime day, DateTime focusedDay) {
-    final normalized = _normalizeDate(day);
+  void onDaySelected(DateTime day, DateTime focusedDay) {
+    final normalizedDay = normalizeDate(day);
     setState(() {
-      selectedDate = normalized;
-      entriesForDay = dailyEntries[normalized] ?? [];
+      selectedDate = normalizedDay;
+      filteredEntries = groupedEntries[normalizedDay] ?? [];
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Calendar 🗓️',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
+            color: theme.colorScheme.primary,
           ),
         ),
         centerTitle: true,
@@ -80,37 +78,67 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 color: Colors.purple.shade200,
                 shape: BoxShape.circle,
               ),
+              weekendTextStyle: TextStyle(
+                color: isDark ? Colors.red.shade200 : Colors.red,
+              ),
+              defaultTextStyle: GoogleFonts.poppins(),
+              todayTextStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            ),
+            headerStyle: HeaderStyle(
+              titleTextStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              formatButtonVisible: false,
+              titleCentered: true,
+            ),
+            daysOfWeekStyle: DaysOfWeekStyle(
+              weekendStyle: GoogleFonts.poppins(color: Colors.red),
+              weekdayStyle: GoogleFonts.poppins(),
             ),
             selectedDayPredicate: (day) => isSameDay(day, selectedDate),
-            onDaySelected: _onDaySelected,
+            onDaySelected: onDaySelected,
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: entriesForDay.isEmpty
+            child: filteredEntries.isEmpty
                 ? Center(
                     child: Text(
-                      "No entries for this day 😊",
+                      "No entry on this date 😅",
                       style: GoogleFonts.poppins(),
                     ),
                   )
                 : ListView.builder(
-                    itemCount: entriesForDay.length,
+                    itemCount: filteredEntries.length,
                     itemBuilder: (context, index) {
-                      final entry = entriesForDay[index];
-                      return ListTile(
-                        leading: Text(
-                          entry.emoji,
-                          style: const TextStyle(fontSize: 28),
+                      final entry = filteredEntries[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        title: Text(
-                          entry.title,
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          entry.content,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(),
+                        color: theme.cardColor,
+                        elevation: 4,
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(16),
+                          leading: Text(
+                            entry.emoji,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontFamilyFallback: [
+                                'NotoColorEmoji',
+                                'Segoe UI Emoji',
+                                'Apple Color Emoji'
+                              ],
+                            ),
+                          ),
+                          title: Text(
+                            entry.title,
+                            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            entry.content,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(),
+                          ),
                         ),
                       );
                     },

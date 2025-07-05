@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1088221200041",
+    "project_id": "fire-setup-e7331",
+    "storage_bucket": "fire-setup-e7331.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1088221200041:android:ea96c4f0f6f396a1c6b3b8",
+        "android_client_info": {
+          "package_name": "com.example.farhanadiary1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfxHkk-PZ_j4OdSbHlR-tkdQgzH3zvWJE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

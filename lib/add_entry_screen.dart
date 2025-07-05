@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'diary_entry.dart';
 import 'shared_pref_service.dart';
 
@@ -35,11 +36,14 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       return;
     }
 
+    final now = DateTime.now();
+    final normalizedDate = DateTime(now.year, now.month, now.day);
+
     final newEntry = DiaryEntry(
       title: title,
       content: content,
       emoji: selectedEmoji,
-      date: DateTime.now(),
+      date: normalizedDate,
     );
 
     await SharedPrefService.saveEntry(newEntry);
@@ -64,7 +68,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
             decoration: BoxDecoration(
               color: selectedEmoji == emoji
                   ? Colors.purple.shade100
-                  : Colors.grey.shade200,
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -86,13 +90,16 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textColor = theme.textTheme.bodyLarge?.color;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Add Note 📝",
+          "Add Entry 📝",
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
+            color: theme.colorScheme.primary,
           ),
         ),
         centerTitle: true,
@@ -103,26 +110,31 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
           children: [
             TextField(
               controller: titleController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Title',
-                border: OutlineInputBorder(),
+                labelStyle: TextStyle(color: textColor),
+                border: const OutlineInputBorder(),
               ),
-              style: GoogleFonts.poppins(),
+              style: GoogleFonts.poppins(color: textColor),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: contentController,
               maxLines: 5,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Content',
-                border: OutlineInputBorder(),
+                labelStyle: TextStyle(color: textColor),
+                border: const OutlineInputBorder(),
               ),
-              style: GoogleFonts.poppins(),
+              style: GoogleFonts.poppins(color: textColor),
             ),
             const SizedBox(height: 20),
             Text(
-              "Choose an Emoji:",
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              "Select Emoji:",
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
             ),
             const SizedBox(height: 10),
             buildEmojiGrid(),
@@ -130,7 +142,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
             ElevatedButton.icon(
               onPressed: saveEntry,
               icon: const Icon(Icons.save),
-              label: const Text('Save'),
+              label: const Text('Save Entry'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.purple,
                 foregroundColor: Colors.white,

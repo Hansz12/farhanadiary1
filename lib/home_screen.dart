@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'add_entry_screen.dart';
 import 'calendar_screen.dart';
@@ -17,18 +18,26 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String username = '';
   List<DiaryEntry> entries = [];
 
   @override
   void initState() {
     super.initState();
+    loadUsername();
     loadEntries();
+  }
+
+  Future<void> loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      username = prefs.getString('username') ?? 'User';
+    });
   }
 
   Future<void> loadEntries() async {
     final loadedEntries = await SharedPrefService.getEntries();
     setState(() {
-      // Reverse so latest entries appear first
       entries = loadedEntries.reversed.toList();
     });
   }
@@ -40,20 +49,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           "My Diary 💜",
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
+            color: theme.colorScheme.primary,
           ),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_today, color: Colors.purple),
+            icon: Icon(Icons.calendar_today, color: theme.colorScheme.primary),
             onPressed: () {
               Navigator.push(
                 context,
@@ -62,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.purple),
+            icon: Icon(Icons.settings, color: theme.colorScheme.primary),
             onPressed: () {
               Navigator.push(
                 context,
@@ -77,9 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 activeColor: Colors.white,
                 inactiveThumbColor: Colors.purple,
                 inactiveTrackColor: Colors.purple.shade100,
-                onChanged: (val) {
-                  themeProvider.toggleTheme(val);
-                },
+                onChanged: (val) => themeProvider.toggleTheme(val),
               );
             },
           ),
@@ -88,8 +97,11 @@ class _HomeScreenState extends State<HomeScreen> {
       body: entries.isEmpty
           ? Center(
               child: Text(
-                'No notes yet 😴',
-                style: GoogleFonts.poppins(fontSize: 16),
+                'No entries yet 😴',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
             )
           : ListView.builder(
@@ -102,8 +114,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   margin: const EdgeInsets.only(bottom: 16),
-                  color: Theme.of(context).cardColor,
-                  elevation: 4,
+                  color: theme.cardColor,
+                  elevation: 3,
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16),
                     leading: Text(
@@ -120,7 +132,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     title: Text(
                       entry.title,
                       style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600, fontSize: 18),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                        color: theme.colorScheme.onSurface,
+                      ),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,20 +145,25 @@ class _HomeScreenState extends State<HomeScreen> {
                           entry.content,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(fontSize: 14),
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            // ignore: deprecated_member_use
+                            color: theme.colorScheme.onSurface.withOpacity(0.85),
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           formatDate(entry.date),
                           style: GoogleFonts.poppins(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: theme.hintColor,
                           ),
                         ),
                       ],
                     ),
                     trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(Icons.delete),
+                      color: Colors.redAccent,
                       onPressed: () => deleteEntry(index),
                     ),
                   ),
@@ -151,16 +171,16 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.purple,
+        backgroundColor: theme.colorScheme.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Add Entry'),
         onPressed: () async {
           await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AddEntryScreen()),
+            MaterialPageRoute(builder: (_) => const AddEntryScreen()),
           );
-          loadEntries(); // Reload entries when coming back
+          loadEntries(); // Refresh after return
         },
       ),
     );

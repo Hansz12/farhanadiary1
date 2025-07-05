@@ -22,10 +22,21 @@ class SharedPrefService {
     if (encoded == null || encoded.isEmpty) return [];
     try {
       final decoded = jsonDecode(encoded) as List<dynamic>;
-      return decoded.map((e) => DiaryEntry.fromJson(e as Map<String, dynamic>)).toList();
+      return decoded.map((e) => DiaryEntry.fromJson(e)).toList();
     } catch (e) {
       debugPrint("Error decoding diary entries: $e");
       return [];
+    }
+  }
+
+  // Update a diary entry at a specific index
+  static Future<void> updateEntry(int index, DiaryEntry updatedEntry) async {
+    final prefs = await SharedPreferences.getInstance();
+    final entries = await getEntries();
+    if (index >= 0 && index < entries.length) {
+      entries[index] = updatedEntry;
+      final encoded = jsonEncode(entries.map((e) => e.toJson()).toList());
+      await prefs.setString(_entryKey, encoded);
     }
   }
 
@@ -40,6 +51,7 @@ class SharedPrefService {
     }
   }
 
+  // Clear all saved entries
   static Future<void> clearAllEntries() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_entryKey);
