@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_emoji/flutter_emoji.dart';
-
 import 'diary_entry.dart';
 import 'shared_pref_service.dart';
 
@@ -15,7 +13,11 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
   final TextEditingController _emojiController = TextEditingController();
-  final emojiParser = EmojiParser();
+
+  final List<String> emojiList = [
+    '😐', '🙂', '😄', '🥰', '😊', '😳',
+    '😠', '😢', '😭', '😿', '😩', '😲'
+  ];
 
   void saveEntry() async {
     String title = _titleController.text.trim();
@@ -26,30 +28,68 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     if (title.isEmpty || content.isEmpty || emoji.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Please fill in all fields."),
-          backgroundColor: Colors.red,
-        ),
+            content: Text("Please fill in all fields."),
+            backgroundColor: Colors.red),
       );
       return;
     }
 
-    final newEntry = DiaryEntry(
-      title: title,
-      content: content,
-      emoji: emoji,
-      date: date,
-    );
-
+    final newEntry =
+        DiaryEntry(title: title, content: content, emoji: emoji, date: date);
     await SharedPrefService.addEntry(newEntry);
-    Navigator.pop(context); // Balik ke home screen
+    Navigator.pop(context);
+  }
+
+  void showEmojiPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("How's your day?",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              GridView.builder(
+                shrinkWrap: true,
+                itemCount: emojiList.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 6,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                ),
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      _emojiController.text = emojiList[index];
+                      Navigator.pop(context);
+                    },
+                    child: Center(
+                      child: Text(
+                        emojiList[index],
+                        style: const TextStyle(fontSize: 28),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Entry ✍️'),
-      ),
+      appBar: AppBar(title: const Text('Add New Entry ✍️')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: SingleChildScrollView(
@@ -60,7 +100,8 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                 decoration: InputDecoration(
                   labelText: 'Title',
                   prefixIcon: const Icon(Icons.title),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 16),
@@ -71,16 +112,23 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                   labelText: 'Note',
                   alignLabelWithHint: true,
                   prefixIcon: const Icon(Icons.note),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _emojiController,
+                readOnly: true,
                 decoration: InputDecoration(
-                  labelText: 'Emoji (e.g. 😊)',
+                  labelText: 'Emoji',
                   prefixIcon: const Icon(Icons.emoji_emotions),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.expand_more),
+                    onPressed: showEmojiPicker,
+                  ),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 24),
@@ -89,8 +137,10 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                 icon: const Icon(Icons.save),
                 label: const Text('Save Entry'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
                 ),
               )
             ],

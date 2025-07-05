@@ -34,7 +34,6 @@ dependencies:
   shared_preferences: ^2.5.3
   table_calendar: ^3.0.9
   provider: ^6.1.2
-  flutter_emoji: ^2.1.0
   intl: ^0.18.1
   cupertino_icons: ^1.0.8
 
@@ -54,7 +53,11 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+
 flutter:
+  assets:
+    - assets/emojis/
+
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
